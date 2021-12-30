@@ -1,0 +1,6 @@
+push4
+.vscode
+*.push4
+practice.ipynb
+practice.py
+*.h.gch
