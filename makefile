@@ -15,7 +15,7 @@ push4 : $(mainfile) $(hedder) $(heddergch)
 $(heddergch) : $(hedder)
 	$(g++) $(gcc_options) -x c++-header -o $@ $<
 
-push4_debug : $(mainfile) $(hedder) $(heddergch)
+push4_train : $(mainfile) $(hedder) $(heddergch)
 	$(g++) $(gcc_options) $(train_options) -include $(hedder) $< -o $@
 
 push4_debug : $(mainfile) $(hedder) $(heddergch)

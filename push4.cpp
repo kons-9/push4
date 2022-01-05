@@ -1,6 +1,7 @@
 #include "push4_headder.h"
 #define DISPLAY
 // #define DEBUG
+// #define TRAIN
 
 // c++の練習
 
@@ -307,7 +308,7 @@ class Agent_mem {
 
 class Agent {
   private:
-    static constexpr Path_len_type levels[6] = {0, 1, 2, 4, 8, 100};
+    static constexpr Path_len_type levels[6] = {1, 3, 5, 7, 9, 100};
     static constexpr Action_type action[4] = {0, 1, 2, 3};
 
     Agent_mem &mem;
@@ -508,6 +509,7 @@ class Agent {
     bool is_confirm(Environment &env) {
         return mem.get_memory(env.board_to_state(), Agent::val).judge != 0;
     }
+
     Action_type select_action(Environment &env) {
 
         search(env, Agent::val);
@@ -564,6 +566,96 @@ class Push4 {
     void load(std::string string) {
         mem.load_mem(string);
     }
+    void sample() {
+        env.reset();
+        Action_type action;
+        for (int i = 0; i < MAX_TURN; i++) {
+            std::cout << env << std::endl;
+            action = first.select_action(env);
+            env.step(action, 1);
+
+            switch (env.judge()) {
+            case 1:
+                std::cout << "player win!!" << std::endl;
+                std::cout << env;
+                return;
+            case 2:
+                std::cout << "player lose!!" << std::endl;
+                std::cout << env;
+                return;
+            default:
+                break;
+            }
+
+            std::cout << env << std::endl;
+            action = second.select_action(env);
+            env.step(action, 2);
+            switch (env.judge()) {
+            case 1:
+                std::cout << "player win!!" << std::endl;
+                std::cout << env;
+                return;
+            case 2:
+                std::cout << "player lose!!" << std::endl;
+                std::cout << env;
+                return;
+            default:
+                break;
+            }
+        }
+    }
+    void pvp() {
+        env.reset();
+        Action_type action;
+        for (int i = 0; i < MAX_TURN; i++) {
+            do {
+                int tmp;
+                std::cout << env;
+                first.select_action(env);
+                std::cout << "Please input 1-4: ";
+                std::cin >> tmp;
+                action = tmp;
+            } while (action < 1 || action > 4);
+            std::cout << "your select: " << (int)action << std::endl;
+            action--;
+            env.step(action, 1);
+            switch (env.judge()) {
+            case 1:
+                std::cout << "player win!!" << std::endl;
+                std::cout << env;
+                return;
+            case 2:
+                std::cout << "player lose!!" << std::endl;
+                std::cout << env;
+                return;
+            default:
+                break;
+            }
+            do {
+                int tmp;
+                std::cout << env;
+                second.select_action(env);
+                std::cout << "Please input 1-4: ";
+                std::cin >> tmp;
+                action = tmp;
+            } while (action < 1 || action > 4);
+            std::cout << "your select: " << (int)action << std::endl;
+            action--;
+            env.step(action, 2);
+            switch (env.judge()) {
+            case 1:
+                std::cout << "player win!!" << std::endl;
+                std::cout << env;
+                return;
+            case 2:
+                std::cout << "player lose!!" << std::endl;
+                std::cout << env;
+                return;
+            default:
+                break;
+            }
+        }
+    }
     void vs_player(Player_val_type val) {
         env.reset();
         if (val == 1) {
@@ -600,9 +692,11 @@ class Push4 {
                 switch (env.judge()) {
                 case 1:
                     std::cout << "player win!!" << std::endl;
+                    std::cout << env;
                     return;
                 case 2:
                     std::cout << "player lose!!" << std::endl;
+                    std::cout << env;
                     return;
                 default:
                     break;
@@ -647,6 +741,10 @@ class Push4 {
                     break;
                 }
             }
+        } else if (val == 3) {
+            pvp();
+        } else if (val == 4) {
+            sample();
         } else {
             std::cout << "invalid player type." << std::endl;
             return;
@@ -701,9 +799,7 @@ class Push4 {
     }
 
     void player_test() {
-        Agent_mem mem;
-        Environment env;
-        Agent player(1, mem);
+        Agent &player = first;
         bool flag = true;
         static constexpr int num_int = 6;
         Player_val_type lists[num_int][4][4] = {{{1, 1, 1, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}},
@@ -764,13 +860,13 @@ int main() {
 
     std::string file_path = "./memory.push4";
 #ifdef DEBUG
-    Push4 game;
-    game.all_test();
+    Push4 d_game;
+    d_game.all_test();
     return 0;
 #endif
 #ifdef TRAIN
-    Push4 game(file_path);
-    game.train(file_path);
+    Push4 t_game(file_path);
+    t_game.train(file_path);
     return 0;
 #endif
     int level;
@@ -785,7 +881,8 @@ int main() {
     Push4 game(level);
     if (level >= 5) {
         // 本気モード
-        std::cout << "loading..." game.load(file_path);
+        std::cout << "loading...";
+        game.load(file_path);
     }
 
     while (restart) {
